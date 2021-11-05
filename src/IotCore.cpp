@@ -7,9 +7,10 @@
 
 #include "IotCore.h"
 #include "FS.h"
-#include "SPIFFS.h"
 #ifdef ARDUINO_ARCH_ESP32
+#include "SPIFFS.h"
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #endif
 #ifdef ARDUINO_ARCH_ESP8266
 #include <ESP8266WiFi.h>
@@ -88,7 +89,7 @@ void reconnect() {
 			Serial.print(F("Subscribing to: "));
 			Serial.print(inTopic.c_str());
 
-			// topicos para cada usuário
+			// topicos para cada usuï¿½rio
 			// topic/myswitch/userid/data
 			// topic/myswitch/userid/control
 			// topic/myswitch/userid/config
@@ -99,7 +100,7 @@ void reconnect() {
 			Serial.println(F(" try again in 5 seconds"));
 
 			char buf[256];
-			wifiSecureClient.getLastSSLError(buf, 256);
+			wifiSecureClient.lastError(buf, 256);
 			Serial.print(F("WiFiClientSecure SSL error: "));
 			Serial.println(buf);
 
@@ -132,27 +133,27 @@ void setupIotCore() {
 	} else
 		Serial.println(F("Success to open ca"));
 
-	wifiSecureClient.setBufferSizes(512, 512);
+	//wifiSecureClient.setBufferSizes(512, 512);
 
-	wifiSecureClient.setX509Time(timeClient.getEpochTime());
+	//wifiSecureClient.setX509Time(timeClient.getEpochTime());
 	Serial.print(F("Heap: "));
 	Serial.println(ESP.getFreeHeap());
 
-	if (wifiSecureClient.loadCertificate(cert))
+	if (wifiSecureClient.loadCertificate(cert, cert.size))
 		Serial.println(F("cert loaded"));
 	else {
 		Serial.println(F("cert not loaded"));
 		return;
 	}
 
-	if (wifiSecureClient.loadPrivateKey(private_key))
+	if (wifiSecureClient.loadPrivateKey(private_key, private_key.size))
 		Serial.println(F("private key loaded"));
 	else {
 		Serial.println(F("private key not loaded"));
 		return;
 	}
 
-	if (wifiSecureClient.loadCACert(ca))
+	if (wifiSecureClient.loadCACert(ca, ca.size))
 		Serial.println(F("ca loaded"));
 	else {
 		Serial.println(F("ca failed"));
@@ -228,6 +229,6 @@ bool sendRelayChangeMessageIotCore(const char * name, uint8_t state) {
         payload: buffer,
         qos: 0
     }
- Provavelmente só chega o campo payload
+ Provavelmente sï¿½ chega o campo payload
 */
 

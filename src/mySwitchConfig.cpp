@@ -7,6 +7,12 @@
 
 #include <Arduino.h>
 #include <FS.h>
+#ifdef ARDUINO_ARCH_ESP32
+#include "SPIFFS.h"
+#endif
+#ifdef ARDUINO_ARCH_ESP8266
+#endif
+
 #include <mySwitchConfig.h>
 
 

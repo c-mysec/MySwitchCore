@@ -7,8 +7,8 @@
 
 #include "Web.h"
 #include "FS.h"
-#include "SPIFFS.h"
 #ifdef ARDUINO_ARCH_ESP32
+#include "SPIFFS.h"
 #include <WiFi.h>
 #endif
 #ifdef ARDUINO_ARCH_ESP8266
@@ -84,39 +84,6 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
 		if (filename.equals(F("config.dat"))) loadConfig();
 	}
 }
-void handle_update_progress_cb(AsyncWebServerRequest *request, String filename,
-		size_t index, uint8_t *data, size_t len, bool final) {
-	if (!request->authenticate(update_username, configValues.passwd))
-		return request->requestAuthentication();
-	uint32_t free_space = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
-	if (!index) {
-		SPIFFS.end();
-		fwupdt = 1;
-		Serial.println("Update");
-		Update.runAsync(true);
-		if (!Update.begin(free_space)) {
-			Update.printError(Serial);
-		}
-	}
-
-	if (Update.write(data, len) != len) {
-		Update.printError(Serial);
-	} else {
-		Serial.printf("Progress: %d%%\n",
-				(Update.progress() * 100) / Update.size());
-	}
-
-	if (final) {
-		if (!Update.end(true)) {
-			Update.printError(Serial);
-			SPIFFS.begin();
-		} else {
-			fwupdt = 2; //Set flag so main loop can issue restart call
-			Serial.println(F("Update complete"));
-		}
-	}
-}
-
 void webSetup() {
 	httpServer.serveStatic("/", SPIFFS, "/www/").setCacheControl("max-age=600").setDefaultFile("index.html").setAuthentication(
 			update_username, configValues.passwd);
@@ -130,16 +97,18 @@ void webSetup() {
 		request->send(200, FPSTR(_TEXTHTML),t);
 	});
 	httpServer.on("/dir", HTTP_GET, [](AsyncWebServerRequest *request) {
-		Dir dir = SPIFFS.openDir("/");
+		File dir = SPIFFS.open("/");
 		String t;
 		t.reserve(500);
-		while (dir.next()) {
+		File f = dir.openNextFile();
+		while (f) {
 			t.concat(F("<br><a href=\"/delete?f="));
-		    t.concat(dir.fileName());
+		    t.concat(f.name());
 		    t.concat(F("\">"));
-		    t.concat(dir.fileName());
+		    t.concat(f.name());
 		    t.concat(F("</a>"));
 		    t.concat(F("<br>"));
+			f = dir.openNextFile();
 		}
 		t.concat(F("<br><a href=\"/format\">format</a>"));
 		t.concat(F("<br><a href=\"/\">home1</a>"));
@@ -211,7 +180,7 @@ void webSetup() {
 						F("resetting wifi settings ..."));
 				delay(1000);
 				WiFi.disconnect(true);
-				ESP.reset();
+				ESP.restart();
 			}).setAuthentication(update_username, configValues.passwd);
 	httpServer.on(String(F("/fupload")).c_str(), HTTP_GET,
 			[](AsyncWebServerRequest *request) {
@@ -234,14 +203,6 @@ void webSetup() {
 				request->send(200, FPSTR(_TEXTHTML),
 						"<form method='POST' action='/firmware' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form><br><a href=\"/\">home</a>");
 			}).setAuthentication(update_username, configValues.passwd);
-	httpServer.on(update_path, HTTP_POST, [](AsyncWebServerRequest *request) {
-		fwupdt = Update.hasError() ? 0 : 2;
-		AsyncWebServerResponse *response = request->beginResponse(200,FPSTR(_TEXTHTML) , fwupdt==2?"OK<script>setTimeout(function(){ location='/'; }, 3000);</script>":"FAIL");
-		fwupdt = fwupdt==2?3:0;
-		response->addHeader("Connection", "close");
-		request->send(response);
-	}, handle_update_progress_cb);
-
 	httpServer.on(String(F("/config.dat")).c_str(), HTTP_GET, [](AsyncWebServerRequest *request) {
 		if (!request->authenticate(update_username, configValues.passwd))
 			return request->requestAuthentication();

@@ -56,13 +56,13 @@ void sendPackage(const char* packet, size_t packetSize) {
 	printBlock(ivEncryptedHmac, ivEncryptedHmacSize);
 
 	udp.beginPacket(broadcastIp, brodcastPort);
-	udp.write((const char*)&ivEncryptedHmac, ivEncryptedHmacSize);
+	udp.write((const uint8_t*)&ivEncryptedHmac, ivEncryptedHmacSize);
 	udp.endPacket();
 
 }
 void sendHeartBeat() {
 	IPAddress ip = WiFi.localIP();
-	char packet[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ip[0], ip[1], ip[2], ip[3]};
+	uint8_t packet[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ip[0], ip[1], ip[2], ip[3]};
 	udp.beginPacket(broadcastIp, brodcastPort);
 	udp.write(packet, 14);
 	udp.endPacket();
