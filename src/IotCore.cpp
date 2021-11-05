@@ -139,21 +139,21 @@ void setupIotCore() {
 	Serial.print(F("Heap: "));
 	Serial.println(ESP.getFreeHeap());
 
-	if (wifiSecureClient.loadCertificate(cert, cert.size))
+	if (wifiSecureClient.loadCertificate(cert, cert.size()))
 		Serial.println(F("cert loaded"));
 	else {
 		Serial.println(F("cert not loaded"));
 		return;
 	}
 
-	if (wifiSecureClient.loadPrivateKey(private_key, private_key.size))
+	if (wifiSecureClient.loadPrivateKey(private_key, private_key.size()))
 		Serial.println(F("private key loaded"));
 	else {
 		Serial.println(F("private key not loaded"));
 		return;
 	}
 
-	if (wifiSecureClient.loadCACert(ca, ca.size))
+	if (wifiSecureClient.loadCACert(ca, ca.size()))
 		Serial.println(F("ca loaded"));
 	else {
 		Serial.println(F("ca failed"));
