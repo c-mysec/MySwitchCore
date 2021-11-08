@@ -76,7 +76,7 @@ void println(const __FlashStringHelper* parname, const char* buf1, const char* b
 bool loadAllConfigs() {
 	if (!loadConfig()) return false;
 	createUdpKeys();
-	loadCloudConfig(); // se retornar false não tem cloud mas tudo funciona normal.
+	loadCloudConfig(); // se retornar false nï¿½o tem cloud mas tudo funciona normal.
 	return true;
 }
 bool loadConfig() {
@@ -99,6 +99,11 @@ bool loadConfig() {
 	Serial.println(F("Reading file"));
 	//int version = f1.read();
 	f1.readBytes((char*)&configValues, sizeof(ConfigValues));
+	configValues.routerSsid[32] = 0;
+	if (strlen(configValues.routerSsid) == 0) {
+		Serial.println(F("Config file empty routerSSid"));
+		return false;
+	}
 	println(F("Router SSID: "), configValues.routerSsid);
 	println(F("Router Pass: "), configValues.routerPass);
 	println(F("nodeName: "), configValues.nodeName);
