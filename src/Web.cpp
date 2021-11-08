@@ -30,7 +30,7 @@ static const char _RELAYNAME[] PROGMEM = "relayName";
 static const char _BUTTONNUM[] PROGMEM = "buttonNum";
 static const char _STATE[] PROGMEM = "state";
 int fwupdt = 0;
-
+// teste
 const char *update_path = "/firmware";
 const char *update_username = "admin";
 //const char *update_password = "lockheed";
